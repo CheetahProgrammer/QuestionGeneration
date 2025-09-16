@@ -80,11 +80,45 @@ class GroupedFrequencyTable:
                                            self.groups[i].a - extend_left, self.groups[i].b + extend_right)
 
                 return res
+    
+    def estimate_mean(self):
+        
+        n = self.n
+        est_sum = 0
+
+        for group in self.groups:
+            pass
+
+    #returns latex code representing the grouped frequency table
+    def latex_table(self):
+
+        #number of datagroups
+        data_cols = len(self.groups)
+
+        #start of table
+        code_prefix = """\\begin{table}[]\r\n\\begin{tabular}{|l|""" + data_cols * "c|" + "}\r\n\\hline\r\n"
+        
+        first_row = """\\textbf{Data, $x$}"""
+        for group in self.groups:
+            first_row += "& " + "${a}\\leq x < {b}$".format(a=group.a, b=group.b)
+        first_row += "\\\\ \\hline\r\n"
+
+        second_row = """\\textbf{Frequency}"""
+        for group in self.groups:
+            second_row += "& " + str(group.f)
+        second_row += "\\\\ \\hline\r\n"
+
+        code_suffix = """\\end{tabular}\r\n\\end{table}\r\n"""
+        
+        return code_prefix + first_row + second_row + code_suffix
+
 
     
 # gpf = GroupedFrequencyTable([12, 23, 3], [(10, 20), (30, 40), (50, 60)])
 # gpf = GroupedFrequencyTable([2, 10], [(1,2),(2,3)])
 gpf = GroupedFrequencyTable([3, 6, 10, 7, 5], [(300, 349), (350, 399), (400, 449), (450, 499), (500, 549)])
+
+print(gpf.latex_table())
 #gpf = GroupedFrequencyTable([2, 25, 30, 13], [(30, 31), (32, 33), (34, 36), (37, 39)])
 gpf.printout()
 # for i in range(1, gpf.n+1) :
