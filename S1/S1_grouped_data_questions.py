@@ -1,10 +1,14 @@
-#TODO rounding to 2sf and 3sf
+import random
+import datetime
 
 #linear interpolation, so that (a, x, b) form the same ratios as (A, y, B)
 def linear_interpolation(a, x, b, A, B):
     y = A + (B - A) *  (x - a) / (b - a)
     return y
 
+#TODO make printing out and generation take into account rounding of the numbers
+#TODO make randomising more modal (triangular, normal?)
+#TODO make the same functions for ungrouped frequency tables
 class GroupedFrequencyTable:
 
     def __init__(self, freqs = [], bdrs = []):
@@ -30,7 +34,7 @@ class GroupedFrequencyTable:
     def printout(self):
         
         for dg in self.groups:
-            print("Class {a} to {b}, frequency {f}".format(a = dg.a, b = dg.b, f = dg.f))
+            print("Class {a} to {b}, frequency {f}".format(a = round(dg.a, 2), b = round(dg.b, 2), f = dg.f))
 
     def compute_class_boundaries(self, extend_boundary = True):
         
@@ -112,13 +116,43 @@ class GroupedFrequencyTable:
         code_suffix = """\\end{tabular}\r\n\\end{table}\r\n"""
         
         return code_prefix + first_row + second_row + code_suffix
+    
+    def randomize(self, seed_val = None, n_of_groups = None):
+        if(seed_val != None):
+            random.seed(seed_val)
+        else:
+            random.seed(datetime.datetime.now().timestamp())
+
+        if(n_of_groups == None):
+            n_of_groups = random.randint(6, 10)
+        
+        magnitude = random.choice([-2, -1, 0, 1, 2, 3])
+        width = random.randint(2, 5) * (10 ** magnitude)
+        gap = 10 ** magnitude
+
+        if(magnitude >= 0):
+            start = random.randint(1, 9) * (10 ** magnitude)
+        else:
+            start = random.randint(1, 9)
+
+        current_left = start
+        self.groups = []
+        self.n = 0
+        for i in range(n_of_groups):
+            f = random.randint(10, 20)
+            self.groups.append(GroupedFrequencyTable.DataGroup(current_left, current_left + width, f))
+            self.n += f
+            current_left += width + gap
+
 
 
 # gpf = GroupedFrequencyTable([12, 23, 3], [(10, 20), (30, 40), (50, 60)])
 # gpf = GroupedFrequencyTable([2, 10], [(1,2),(2,3)])
 # gpf = GroupedFrequencyTable([3, 6, 10, 7, 5], [(300, 349), (350, 399), (400, 449), (450, 499), (500, 549)])
 # gpf = GroupedFrequencyTable([5, 10, 26, 8, 1], [(90, 95), (95, 100), (100, 105), (105, 110), (110, 115)])
-gpf = GroupedFrequencyTable([5, 10, 36, 20, 9], [(20, 29), (30, 39), (40, 49), (50, 59), (60, 69)])
+# gpf = GroupedFrequencyTable([5, 10, 36, 20, 9], [(20, 29), (30, 39), (40, 49), (50, 59), (60, 69)])
+gpf = GroupedFrequencyTable()
+gpf.randomize()
 
 gpf.printout()
 
@@ -126,12 +160,12 @@ def boundaries_presentation(table):
     print("No extension of boundaries")
     table.compute_class_boundaries(extend_boundary = False)
     for g in table.groups:
-        print("Class boundaries: {a}, {b}".format(a=g.lb, b=g.rb))
+        print("Class boundaries: {a}, {b}".format(a=round(g.lb, 2), b=round(g.rb, 2)))
 
     print("Extension of boundaries")
     table.compute_class_boundaries(extend_boundary = True)
     for g in table.groups:
-        print("Class boundaries: {a}, {b}".format(a=g.lb, b=g.rb))
+        print("Class boundaries: {a}, {b}".format(a=round(g.lb, 2), b=round(g.rb, 2)))
 
 boundaries_presentation(gpf)
 
