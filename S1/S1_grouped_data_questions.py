@@ -19,8 +19,7 @@ class GroupedFrequencyTable:
             a, b = bdrs[i]
             
             self.groups.append(GroupedFrequencyTable.DataGroup(a, b, f))
-
-        
+   
     class DataGroup:
 
         def __init__(self, a, b, f):    
@@ -32,9 +31,33 @@ class GroupedFrequencyTable:
         
         for dg in self.groups:
             print("Class {a} to {b}, frequency {f}".format(a = dg.a, b = dg.b, f = dg.f))
-            
+
+    def compute_class_boundaries(self, extend_boundary = True):
+        
+        for i in range(len(self.groups)):
+            if(i == 0 and i == len(self.groups) - 1):
+                self.groups[i].lb = self.groups[i].a
+                self.groups[i].rb = self.groups[i].b
+            elif(i == 0):
+                if(extend_boundary):
+                    self.groups[i].lb = self.groups[i].a - (self.groups[i+1].a - self.groups[i].b) / 2
+                else:
+                    self.groups[i].lb = self.groups[i].a
+                self.groups[i].rb = (self.groups[i].b + self.groups[i+1].a) / 2
+            elif(i == len(self.groups) - 1):
+                self.groups[i].lb = (self.groups[i-1].b + self.groups[i].a) / 2
+                if(extend_boundary):
+                    self.groups[i].rb = self.groups[i].b + (self.groups[i].a - self.groups[i-1].b) / 2
+                else:
+                    self.groups[i].rb = self.groups[i].b
+            else:
+                self.groups[i].lb = (self.groups[i-1].b + self.groups[i].a) / 2
+                self.groups[i].rb = (self.groups[i].b + self.groups[i+1].a) / 2
+
     #estimate element on the position pos
     def estimate_element(self, pos, extend_boundary = True):
+
+        self.compute_class_boundaries(extend_boundary)
 
         cum_freq_l = 0
         cum_freq_r = 0
@@ -44,50 +67,28 @@ class GroupedFrequencyTable:
 
             if cum_freq_l < pos and pos <= cum_freq_r:
                 
-                if(i == 0):
-                    bound_prev = None
-                    extend_left = None
-                else:
-                    bound_prev = self.groups[i-1].b
-                    extend_left = (self.groups[i].a - bound_prev)/2
-                
-                if(i == len(self.groups) - 1):
-                    bound_next = None
-                    extend_right = None
-                else:
-                    bound_next = self.groups[i+1].a
-                    extend_right = (bound_next - self.groups[i].b)/2
+                return linear_interpolation(cum_freq_l , pos, cum_freq_r,
+                                            self.groups[i].lb, self.groups[i].rb)
 
-                # print("Cases")
-                if(extend_right == None and extend_right == None):
-                    # print("C1")
-                    extend_right = 0
-                    extend_left = 0
-                elif(extend_left == None):
-                    # print("C2")
-                    if(extend_boundary):
-                        extend_left = extend_right
-                    else:
-                        extend_left = 0
-                elif(extend_right == None):
-                    # print("C3")
-                    if(extend_boundary):
-                        extend_right = extend_left
-                    else:
-                        extend_right = 0
-                
-                res = linear_interpolation(cum_freq_l , pos, cum_freq_r, 
-                                           self.groups[i].a - extend_left, self.groups[i].b + extend_right)
-
-                return res
     
-    def estimate_mean(self):
+    def estimate_mean_var_std(self, extend_boundary = True):
         
-        n = self.n
+        self.compute_class_boundaries(extend_boundary)
+
         est_sum = 0
+        est_sum_sq = 0
 
         for group in self.groups:
-            pass
+            x = (group.lb + group.rb) / 2
+            est_sum += group.f * x
+            est_sum_sq += group.f * (x ** 2)
+
+        est_mean = est_sum / self.n
+        est_mean_sq = est_sum_sq / self.n
+        est_var = est_mean_sq - est_mean ** 2
+        est_std = est_var ** 0.5
+
+        return est_mean, est_var, est_std
 
     #returns latex code representing the grouped frequency table
     def latex_table(self):
@@ -113,18 +114,48 @@ class GroupedFrequencyTable:
         return code_prefix + first_row + second_row + code_suffix
 
 
-    
 # gpf = GroupedFrequencyTable([12, 23, 3], [(10, 20), (30, 40), (50, 60)])
 # gpf = GroupedFrequencyTable([2, 10], [(1,2),(2,3)])
-gpf = GroupedFrequencyTable([3, 6, 10, 7, 5], [(300, 349), (350, 399), (400, 449), (450, 499), (500, 549)])
+# gpf = GroupedFrequencyTable([3, 6, 10, 7, 5], [(300, 349), (350, 399), (400, 449), (450, 499), (500, 549)])
+# gpf = GroupedFrequencyTable([5, 10, 26, 8, 1], [(90, 95), (95, 100), (100, 105), (105, 110), (110, 115)])
+gpf = GroupedFrequencyTable([5, 10, 36, 20, 9], [(20, 29), (30, 39), (40, 49), (50, 59), (60, 69)])
+
+gpf.printout()
+
+def boundaries_presentation(table):
+    print("No extension of boundaries")
+    table.compute_class_boundaries(extend_boundary = False)
+    for g in table.groups:
+        print("Class boundaries: {a}, {b}".format(a=g.lb, b=g.rb))
+
+    print("Extension of boundaries")
+    table.compute_class_boundaries(extend_boundary = True)
+    for g in table.groups:
+        print("Class boundaries: {a}, {b}".format(a=g.lb, b=g.rb))
+
+boundaries_presentation(gpf)
 
 print(gpf.latex_table())
 #gpf = GroupedFrequencyTable([2, 25, 30, 13], [(30, 31), (32, 33), (34, 36), (37, 39)])
-gpf.printout()
 # for i in range(1, gpf.n+1) :
     # print("Estimated {i}th element: {x}".format(i=i, x=gpf.estimate_element(i)))
 
 print("n = " + str(gpf.n))
-print("Q1 = " + str(gpf.estimate_element(gpf.n/4, extend_boundary = True)))
-print("Q2 = " + str(gpf.estimate_element(gpf.n/2, extend_boundary = True)))
-print("Q3 = " + str(gpf.estimate_element(3*gpf.n/4, extend_boundary = True)))
+Q1 = gpf.estimate_element(gpf.n/4, extend_boundary = True)
+print("Q1 = " + str(Q1))
+Q2 = gpf.estimate_element(gpf.n/2, extend_boundary = True)
+print("Q2 = " + str(Q2))
+Q3 = gpf.estimate_element(3*gpf.n/4, extend_boundary = True)
+print("Q3 = " + str(Q3))
+IQR = Q3 - Q1
+print("IQR = " + str(IQR))
+
+m, v, s = gpf.estimate_mean_var_std(extend_boundary = True)
+print("Estimated mean = " + str(m))
+print("Estimated variance = " + str(v))
+print("Estimated standard deviation = " + str(s))
+
+
+# single_class_example = GroupedFrequencyTable([100], [(500, 1000)])
+# boundaries_presentation(single_class_example)
+
