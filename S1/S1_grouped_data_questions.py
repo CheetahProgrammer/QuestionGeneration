@@ -94,28 +94,35 @@ class GroupedFrequencyTable:
         return est_mean, est_var, est_std
 
     #returns latex code representing the grouped frequency table
-    def latex_table(self, precision = 2):
+    def latex_table(self, precision = 2, vertical = False):
 
         #number of datagroups
         data_cols = len(self.groups)
 
         #start of table
-        code_prefix = """\\begin{table}[]\r\n\\begin{tabular}{|l|""" + data_cols * "c|" + "}\r\n\\hline\r\n"
-        
-        first_row = """\\textbf{Data, $x$}"""
-        for group in self.groups:
-            first_row += "& " + "${a}\\leq x < {b}$".format(a=round(group.a, precision), 
-                                                            b=round(group.b, precision))
-        first_row += "\\\\ \\hline\r\n"
 
-        second_row = """\\textbf{Frequency}"""
-        for group in self.groups:
-            second_row += "& " + str(group.f)
-        second_row += "\\\\ \\hline\r\n"
+        if vertical:
+            pass
+            # code_prefix = """\begin{table}[]\r\n\\begin{tabular}{"""
+        if(not vertical):
+            code_prefix = """\\begin{table}[]\r\n\\begin{tabular}{|l|""" + data_cols * "c|" + "}\r\n\\hline\r\n"
+            
+            first_row = """\\textbf{Data, $x$}"""
+            for group in self.groups:
+                first_row += "& " + "${a}\\leq x < {b}$".format(a=round(group.a, precision), 
+                                                                b=round(group.b, precision))
+            first_row += "\\\\ \\hline\r\n"
 
-        code_suffix = """\\end{tabular}\r\n\\end{table}\r\n"""
-        
-        return code_prefix + first_row + second_row + code_suffix
+            second_row = """\\textbf{Frequency}"""
+            for group in self.groups:
+                second_row += "& " + str(group.f)
+            second_row += "\\\\ \\hline\r\n"
+
+            code_suffix = """\\end{tabular}\r\n\\end{table}\r\n"""
+            
+            result = code_prefix + first_row + second_row + code_suffix
+
+        return result
     
     def randomize(self, seed_val = None, n_of_groups = None):
         if(seed_val != None):
