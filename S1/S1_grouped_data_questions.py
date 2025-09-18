@@ -6,7 +6,6 @@ def linear_interpolation(a, x, b, A, B):
     y = A + (B - A) *  (x - a) / (b - a)
     return y
 
-#TODO make printing out and generation take into account rounding of the numbers
 #TODO make randomising more modal (triangular, normal?)
 #TODO make the same functions for ungrouped frequency tables
 class GroupedFrequencyTable:
@@ -95,7 +94,7 @@ class GroupedFrequencyTable:
         return est_mean, est_var, est_std
 
     #returns latex code representing the grouped frequency table
-    def latex_table(self):
+    def latex_table(self, precision = 2):
 
         #number of datagroups
         data_cols = len(self.groups)
@@ -105,7 +104,8 @@ class GroupedFrequencyTable:
         
         first_row = """\\textbf{Data, $x$}"""
         for group in self.groups:
-            first_row += "& " + "${a}\\leq x < {b}$".format(a=group.a, b=group.b)
+            first_row += "& " + "${a}\\leq x < {b}$".format(a=round(group.a, precision), 
+                                                            b=round(group.b, precision))
         first_row += "\\\\ \\hline\r\n"
 
         second_row = """\\textbf{Frequency}"""
@@ -151,6 +151,7 @@ class GroupedFrequencyTable:
 # gpf = GroupedFrequencyTable([3, 6, 10, 7, 5], [(300, 349), (350, 399), (400, 449), (450, 499), (500, 549)])
 # gpf = GroupedFrequencyTable([5, 10, 26, 8, 1], [(90, 95), (95, 100), (100, 105), (105, 110), (110, 115)])
 # gpf = GroupedFrequencyTable([5, 10, 36, 20, 9], [(20, 29), (30, 39), (40, 49), (50, 59), (60, 69)])
+# gpf = GroupedFrequencyTable([4, 8, 6, 7, 5, 1], [(4, 8), (8, 10), (10, 11), (11, 12), (12, 15), (15, 16)])
 gpf = GroupedFrequencyTable()
 gpf.randomize()
 
